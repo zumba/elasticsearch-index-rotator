@@ -191,6 +191,7 @@ class IndexRotator
 		// This section is to support deprecated feature set for ES 1.x.
 		// It may be removed in future versions of this library when ES 1.x is sufficiently unsupported.
 		if (!$this->doesSupportCombinedQueryFilter()) {
+			$this->logger->notice('Using deprecated query format due to elasticsearch version <= 1.x.');
 			unset($params['body']['query']['bool']['filter']);
 			$params['body']['filter']['range']['timestamp']['lt'] = $olderThan->format('U');
 		}
