@@ -1,0 +1,27 @@
+{
+    "name": "zumba/elasticsearch-index-rotate",
+    "description": "Safely rotate indexes with no downtime to end users.",
+    "authors": [
+        {
+            "name": "Chris Saylor",
+            "email": "cjsaylor@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "psr/log": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zumba\\ElasticsearchRotator\\": "src/"
+        }
+    },
+    "suggest": {
+        "monolog/monolog": "Allows more advanced logging of the application flow"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.8.23",
+        "zumba/elasticsearchunit": "^1.3",
+        "elasticsearch/elasticsearch": "^2.1"
+    }
+}
