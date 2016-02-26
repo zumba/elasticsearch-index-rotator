@@ -94,7 +94,7 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 	 * @dataProvider secondaryIndexConditionProvider
 	 */
 	public function testGetSecondaryIndices($olderThan, $expectedIndices) {
-		$results = $this->indexRotator->getSecondaryIndexes($olderThan);
+		$results = $this->indexRotator->getSecondaryIndices($olderThan);
 		$this->assertEmpty(array_diff($results, $expectedIndices));
 	}
 
@@ -102,7 +102,7 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 	 * @dataProvider secondaryIndexConditionProvider
 	 */
 	public function testDeleteSecondaryIndices($olderThan, $expectedToDelete) {
-		$results = $this->indexRotator->deleteSecondaryIndexes($olderThan);
+		$results = $this->indexRotator->deleteSecondaryIndices($olderThan);
 		$this->assertEmpty(array_diff(array_keys($results), $expectedToDelete));
 		foreach ($results as $result) {
 			$this->assertEquals(['acknowledged' => true], $result);

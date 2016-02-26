@@ -160,7 +160,7 @@ class IndexRotator
 	 * @param string $olderThan
 	 * @return array
 	 */
-	public function getSecondaryIndexes(\DateTime $olderThan = null)
+	public function getSecondaryIndices(\DateTime $olderThan = null)
 	{
 		if ($olderThan === null) {
 			$olderThan = new \DateTime();
@@ -213,10 +213,10 @@ class IndexRotator
 	 * @param \DateTime $olderThan
 	 * @return array Results of the bulk operation.
 	 */
-	public function deleteSecondaryIndexes(\DateTime $olderThan = null)
+	public function deleteSecondaryIndices(\DateTime $olderThan = null)
 	{
 		$results = [];
-		foreach ($this->getSecondaryIndexes($olderThan) as $indexToDelete) {
+		foreach ($this->getSecondaryIndices($olderThan) as $indexToDelete) {
 			if ($this->engine->indices()->exists(['index' => $indexToDelete])) {
 				$results[$indexToDelete] = $this->engine->indices()->delete(['index' => $indexToDelete]);
 				$this->logger->debug('Deleted secondary index.', compact('indexToDelete'));

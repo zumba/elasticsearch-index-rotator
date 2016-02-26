@@ -6,7 +6,7 @@ A library to enable you to safely rotate indexes with no downtime to end users.
 
 ### Why would I use this?
 
-In many situations, Elasticsearch is used as an ephemeral datastore used to take structured or relational data, and make it fast to search on that data. Often this is achieved via scheduled jobs that read data from a permanent datastore (such as MySQL or Postgres) and translate it into an Elasticsearch index.
+In many situations, Elasticsearch is used as an ephemeral datastore used to take structured or relational data and make it fast to search on that data. Often this is achieved via scheduled jobs that read data from a permanent datastore (such as MySQL or Postgres) and translate it into an Elasticsearch index.
 
 In many cases, rebuilding an index requires a clean slate so that the entire index is rebuilt. How do you do this without interrupting end users searching on that index? The answer is a rotating index.
 
@@ -51,7 +51,7 @@ $newlyBuiltIndexName = $this->buildIndex($client);
 $indexRotator->copyPrimaryIndexToSecondary();
 $indexRotator->setPrimaryIndex($newlyBuiltIndexName);
 // optionally remove the old index right now
-$indexRotator->deleteSecondaryIndexes();
+$indexRotator->deleteSecondaryIndices();
 ```
 
 #### All together
@@ -85,7 +85,7 @@ class MySearchIndex {
 		$indexRotator->copyPrimaryIndexToSecondary();
 		$indexRotator->setPrimaryIndex($newlyBuiltIndexName);
 		// optionally remove the old index right now
-		$indexRotator->deleteSecondaryIndexes();
+		$indexRotator->deleteSecondaryIndices();
 	}
 
 	private function buildIndex(\Elasticsearch\Client $client) {
