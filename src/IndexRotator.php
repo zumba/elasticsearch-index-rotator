@@ -78,7 +78,8 @@ class IndexRotator
 	public function getPrimaryIndex()
 	{
 		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			throw new Exception\MissingPrimaryIndex('Configuration index not available.');
+			$this->logger->error('Primary index configuration index not available.');
+			throw new Exception\MissingPrimaryIndex('Primary index configuration index not available.');
 		}
 		$primaryPayload = [
 			'index' => $this->configurationIndexName,
@@ -88,7 +89,8 @@ class IndexRotator
 		try {
 			$primary = $this->engine->get($primaryPayload);
 		} catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
-			throw new Exception\MissingPrimaryIndex('Configuration index not available.');
+			$this->logger->error('Primary index does not exist.');
+			throw new Exception\MissingPrimaryIndex('Primary index not available.');
 		}
 		return $primary['_source']['name'];
 	}
