@@ -18,7 +18,7 @@ before_install:
 install:
   - composer install --dev
 
-script: ./bin/phpunit --coverage-text
+script: ./vendor/bin/phpunit --coverage-text
 
 notifications:
   email: false
