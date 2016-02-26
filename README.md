@@ -2,7 +2,7 @@
 
 A library to enable you to safely rotate indexes with no downtime to end users.
 
-[![Build Status](https://travis-ci.com/zumba/elasticsearch-index-rotator.svg?token=zXFxge7zUgReaCncg1CL&branch=master)](https://travis-ci.com/zumba/elasticsearch-index-rotator)
+[![Build Status](https://travis-ci.org/zumba/elasticsearch-index-rotator.svg?branch=master)](https://travis-ci.org/zumba/elasticsearch-index-rotator)
 
 ### Why would I use this?
 
@@ -26,13 +26,43 @@ composer require zumba\elasticsearch-index-rotator
 
 ## Usage
 
+#### Example Search
+
+```php
+<?php
+
+$client = new \Elasticsearch\Client();
+$indexRotator = new \Zumba\ElasticsearchRotator\IndexRotator($client, 'pizza_shops');
+$client->search([
+	'index' => $indexRotator->getPrimaryIndex(), // Get the current primary!
+	'type' => 'shop',
+	'body' => [] //...
+]);
+```
+
+#### Example Build
+
+```php
+<?php
+
+$client = new \Elasticsearch\Client();
+$indexRotator = new IndexRotator($client, 'pizza_shops');
+$newlyBuiltIndexName = $this->buildIndex($client);
+$indexRotator->copyPrimaryIndexToSecondary();
+$indexRotator->setPrimaryIndex($newlyBuiltIndexName);
+// optionally remove the old index right now
+$indexRotator->deleteSecondaryIndexes();
+```
+
+#### All together
+
 ```php
 <?php
 
 use \Elasticsearch\Client;
 use \Zumba\ElastsearchRotator\IndexRotator;
 
-class MyBuilder {
+class MySearchIndex {
 
 	const INDEX_PREFIX = 'pizza_shops';
 
