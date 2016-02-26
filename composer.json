@@ -1,6 +1,7 @@
 {
     "name": "zumba/elasticsearch-index-rotate",
     "description": "Safely rotate indexes with no downtime to end users.",
+    "keywords": ["elasticsearch"],
     "authors": [
         {
             "name": "Chris Saylor",
