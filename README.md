@@ -21,7 +21,7 @@ In many cases, rebuilding an index requires a clean slate so that the entire ind
 ## Installation
 
 ```
-composer require zumba\elasticsearch-index-rotator
+composer require zumba/elasticsearch-index-rotate
 ```
 
 ## Usage
