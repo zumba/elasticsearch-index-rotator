@@ -47,7 +47,8 @@ $client->search([
 
 $client = new \Elasticsearch\Client();
 $indexRotator = new IndexRotator($client, 'pizza_shops');
-$newlyBuiltIndexName = $this->buildIndex($client);
+// Build your index here
+$newlyBuiltIndexName = 'my_new_built_index_name';
 $indexRotator->copyPrimaryIndexToSecondary();
 $indexRotator->setPrimaryIndex($newlyBuiltIndexName);
 // optionally remove the old index right now
