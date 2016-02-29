@@ -93,7 +93,8 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider secondaryIndexConditionProvider
 	 */
-	public function testGetSecondaryIndices($olderThan, $expectedIndices) {
+	public function testGetSecondaryIndices($olderThan, $expectedIndices)
+	{
 		$results = $this->indexRotator->getSecondaryIndices($olderThan);
 		$this->assertEmpty(array_diff($results, $expectedIndices));
 	}
@@ -101,19 +102,32 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider secondaryIndexConditionProvider
 	 */
-	public function testDeleteSecondaryIndices($olderThan, $expectedToDelete) {
+	public function testGetSecondaryIndicesIncludeIds($olderThan, $expectedIndices, $expectedConfigurationIds)
+	{
+		$results = $this->indexRotator->getSecondaryIndices($olderThan, IndexRotator::SECONDARY_INCLUDE_ID);
+		$this->assertEmpty(array_diff(array_column($results, 'index'), $expectedIndices));
+		$this->assertEmpty(array_diff(array_column($results, 'configuration_id'), $expectedConfigurationIds));
+	}
+
+	/**
+	 * @dataProvider secondaryIndexConditionProvider
+	 */
+	public function testDeleteSecondaryIndices($olderThan, $expectedToDelete)
+	{
 		$results = $this->indexRotator->deleteSecondaryIndices($olderThan);
 		$this->assertEmpty(array_diff(array_keys($results), $expectedToDelete));
 		foreach ($results as $result) {
-			$this->assertEquals(['acknowledged' => true], $result);
+			$this->assertEquals(['acknowledged' => true], $result['index']);
+			$this->assertTrue($result['config']['found']);
 		}
 	}
 
-	public function secondaryIndexConditionProvider() {
+	public function secondaryIndexConditionProvider()
+	{
 		return [
-			'all' => [null, ['some_index_3', 'some_index_2']],
-			'older than 2015-02-01' => [new \DateTime('2015-02-01'), ['some_index_2']],
-			'older than 2015-01-01' => [new \DateTime('2015-01-01'), []]
+			'all' => [null, ['some_index_3', 'some_index_2'], ['somesecondary2', 'somesecondary1']],
+			'older than 2015-02-01' => [new \DateTime('2015-02-01'), ['some_index_2'], ['somesecondary1']],
+			'older than 2015-01-01' => [new \DateTime('2015-01-01'), [], []]
 		];
 	}
 }

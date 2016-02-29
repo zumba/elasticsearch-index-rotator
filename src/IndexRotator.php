@@ -10,6 +10,8 @@ class IndexRotator
 {
 	const INDEX_NAME_CONFIG = '.%s_configuration';
 	const TYPE_CONFIGURATION = 'configuration';
+	const SECONDARY_NAME_ONLY = 0;
+	const SECONDARY_INCLUDE_ID = 1;
 	const PRIMARY_ID = 'primary';
 	const RETRY_TIME_COPY = 500000;
 	const MAX_RETRY_COUNT = 5;
@@ -158,9 +160,10 @@ class IndexRotator
 	 * Note, if date is not provided, it will find all secondary indexes.
 	 *
 	 * @param string $olderThan
+	 * @param integer $disposition Controls the return style (defaults to name only)
 	 * @return array
 	 */
-	public function getSecondaryIndices(\DateTime $olderThan = null)
+	public function getSecondaryIndices(\DateTime $olderThan = null, $disposition = self::SECONDARY_NAME_ONLY)
 	{
 		if ($olderThan === null) {
 			$olderThan = new \DateTime();
@@ -199,10 +202,17 @@ class IndexRotator
 		if ($results['hits']['total'] == 0) {
 			return [];
 		}
-		return array_map(function($entry) {
-			return $entry['_source']['name'];
-		}, $results['hits']['hits']);
-		return $results['hits']['total'] > 0 ? array_column($results['hits']['hits'], '_source') : [];
+		$mapper = $disposition === static::SECONDARY_INCLUDE_ID ?
+			function($entry) {
+				return [
+					'index' => $entry['_source']['name'],
+					'configuration_id' => $entry['_id']
+				];
+			} :
+			function($entry) {
+				return $entry['_source']['name'];
+			};
+		return array_map($mapper, $results['hits']['hits']);
 	}
 
 	/**
@@ -216,15 +226,37 @@ class IndexRotator
 	public function deleteSecondaryIndices(\DateTime $olderThan = null)
 	{
 		$results = [];
-		foreach ($this->getSecondaryIndices($olderThan) as $indexToDelete) {
-			if ($this->engine->indices()->exists(['index' => $indexToDelete])) {
-				$results[$indexToDelete] = $this->engine->indices()->delete(['index' => $indexToDelete]);
+		foreach ($this->getSecondaryIndices($olderThan, static::SECONDARY_INCLUDE_ID) as $indexToDelete) {
+			if ($this->engine->indices()->exists(['index' => $indexToDelete['index']])) {
+				$results[$indexToDelete['index']] = [
+					'index' => $this->engine->indices()->delete(['index' => $indexToDelete['index']]),
+					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+				];
 				$this->logger->debug('Deleted secondary index.', compact('indexToDelete'));
 			} else {
+				$results[$indexToDelete] = [
+					'index' => null,
+					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+				];
 				$this->logger->debug('Index not found to delete.', compact('indexToDelete'));
 			}
 		}
 		return $results;
+	}
+
+	/**
+	 * Delete an entry from the configuration index.
+	 *
+	 * @param string $id
+	 * @return array
+	 */
+	private function deleteConfigurationEntry($id)
+	{
+		return $this->engine->delete([
+			'index' => $this->configurationIndexName,
+			'type' => static::TYPE_CONFIGURATION,
+			'id' => $id
+		]);
 	}
 
 	/**
