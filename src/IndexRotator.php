@@ -53,11 +53,7 @@ class IndexRotator
 	public function __construct(\Elasticsearch\Client $engine, $prefix, LoggerInterface $logger = null)
 	{
 		$this->engine = $engine;
-		if ($logger !== null) {
-			$this->logger = $logger;
-		} else {
-			$this->logger = new NullLogger();
-		}
+		$this->logger = $logger ?: new NullLogger();
 		$this->configurationIndex = new ConfigurationIndex($this->engine, $this->logger, $prefix);
 	}
 
