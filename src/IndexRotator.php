@@ -8,11 +8,8 @@ use Elasticsearch\Client;
 
 class IndexRotator
 {
-	const INDEX_NAME_CONFIG = '.%s_configuration';
-	const TYPE_CONFIGURATION = 'configuration';
 	const SECONDARY_NAME_ONLY = 0;
 	const SECONDARY_INCLUDE_ID = 1;
-	const PRIMARY_ID = 'primary';
 	const RETRY_TIME_COPY = 500000;
 	const MAX_RETRY_COUNT = 5;
 
@@ -33,9 +30,10 @@ class IndexRotator
 	/**
 	 * Configuration index name for this index.
 	 *
-	 * @var string
+	 * @var \Zumba\ElasticsearchRotator\ConfigurationIndex
 	 */
-	private $configurationIndexName;
+	private $configurationIndex;
+	 */
 
 	/**
 	 * Mapping for configuration index.
@@ -68,7 +66,7 @@ class IndexRotator
 		} else {
 			$this->logger = new NullLogger();
 		}
-		$this->configurationIndexName = sprintf(static::INDEX_NAME_CONFIG, $this->prefix);
+		$this->configurationIndex = new ConfigurationIndex($this->engine, $this->logger, $prefix);
 	}
 
 	/**
@@ -144,8 +142,8 @@ class IndexRotator
 			return $this->copyPrimaryIndexToSecondary($retryCount++);
 		}
 		$id = $this->engine->index([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
+			'index' => (string)$this->configurationIndex,
+			'type' => ConfigurationIndex::TYPE_CONFIGURATION,
 			'body' => [
 				'name' => $primaryName,
 				'timestamp' => time()
@@ -170,14 +168,14 @@ class IndexRotator
 			$olderThan = new \DateTime();
 		}
 		$params = [
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
+			'index' => (string)$this->configurationIndex,
+			'type' => ConfigurationIndex::TYPE_CONFIGURATION,
 			'body' => [
 				'query' => [
 					'bool' => [
 						'must_not' => [
 							'term' => [
-								'_id' => static::PRIMARY_ID
+								'_id' => ConfigurationIndex::PRIMARY_ID
 							]
 						],
 						'filter' => [
@@ -231,49 +229,18 @@ class IndexRotator
 			if ($this->engine->indices()->exists(['index' => $indexToDelete['index']])) {
 				$results[$indexToDelete['index']] = [
 					'index' => $this->engine->indices()->delete(['index' => $indexToDelete['index']]),
-					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+					'config' => $this->configurationIndex->deleteConfigurationEntry($indexToDelete['configuration_id'])
 				];
 				$this->logger->debug('Deleted secondary index.', compact('indexToDelete'));
 			} else {
 				$results[$indexToDelete] = [
 					'index' => null,
-					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+					'config' => $this->configurationIndex->deleteConfigurationEntry($indexToDelete['configuration_id'])
 				];
 				$this->logger->debug('Index not found to delete.', compact('indexToDelete'));
 			}
 		}
 		return $results;
-	}
-
-	/**
-	 * Delete an entry from the configuration index.
-	 *
-	 * @param string $id
-	 * @return array
-	 */
-	private function deleteConfigurationEntry($id)
-	{
-		return $this->engine->delete([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => $id
-		]);
-	}
-
-	/**
-	 * Create the index needed to store the primary index name.
-	 *
-	 * @return void
-	 */
-	private function createCurrentIndexConfiguration()
-	{
-		$this->engine->indices()->create([
-			'index' => $this->configurationIndexName,
-			'body' => static::$elasticSearchConfigurationMapping
-		]);
-		$this->logger->debug('Configuration index created.', [
-			'index' => $this->configurationIndexName
-		]);
 	}
 
 	/**
