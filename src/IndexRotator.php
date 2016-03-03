@@ -86,7 +86,8 @@ class IndexRotator
 		$primaryPayload = [
 			'index' => $this->configurationIndexName,
 			'type' => static::TYPE_CONFIGURATION,
-			'id' => static::PRIMARY_ID
+			'id' => static::PRIMARY_ID,
+			'preference' => '_primary'
 		];
 		try {
 			$primary = $this->engine->get($primaryPayload);
