@@ -5,6 +5,7 @@ namespace Zumba\ElasticsearchRotator;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Elasticsearch\Client;
+use Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy;
 
 class IndexRotator
 {
@@ -12,6 +13,7 @@ class IndexRotator
 	const SECONDARY_INCLUDE_ID = 1;
 	const RETRY_TIME_COPY = 500000;
 	const MAX_RETRY_COUNT = 5;
+	const DEFAULT_PRIMARY_INDEX_STRATEGY = 'Zumba\ElasticsearchRotator\Strategy\ConfigurationStrategy';
 
 	/**
 	 * Elasticsearch client instance.
@@ -26,7 +28,13 @@ class IndexRotator
 	 * @var \Zumba\ElasticsearchRotator\ConfigurationIndex
 	 */
 	private $configurationIndex;
+
+	/**
+	 * Strategy to employ when working on primary index.
+	 *
+	 * @var \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy
 	 */
+	private $primaryIndexStrategy;
 
 	/**
 	 * Mapping for configuration index.
@@ -55,6 +63,29 @@ class IndexRotator
 		$this->engine = $engine;
 		$this->logger = $logger ?: new NullLogger();
 		$this->configurationIndex = new ConfigurationIndex($this->engine, $this->logger, $prefix);
+		$this->setPrimaryIndexStrategy($this->strategyFactory(static::DEFAULT_PRIMARY_INDEX_STRATEGY, [
+			'configuration_index' => $this->configurationIndex
+		]));
+	}
+
+	/**
+	 * Instantiate a specific strategy.
+	 *
+	 * @param string $strategyClass Fully qualified class name for a strategy.
+	 * @param array $options Options specific to the strategy
+	 * @return \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy
+	 */
+	public function strategyFactory($strategyClass, array $options = []) {
+		return new $strategyClass($this->engine, $this->logger, $options);
+	}
+
+	/**
+	 * Set the primary index strategy.
+	 *
+	 * @param \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy $strategy
+	 */
+	public function setPrimaryIndexStrategy(PrimaryIndexStrategy $strategy) {
+		$this->primaryIndexStrategy = $strategy;
 	}
 
 	/**
@@ -65,23 +96,8 @@ class IndexRotator
 	 */
 	public function getPrimaryIndex()
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->logger->error('Primary index configuration index not available.');
-			throw new Exception\MissingPrimaryIndex('Primary index configuration index not available.');
-		}
-		$primaryPayload = [
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => static::PRIMARY_ID,
-			'preference' => '_primary'
-		];
-		try {
-			$primary = $this->engine->get($primaryPayload);
-		} catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
-			$this->logger->error('Primary index does not exist.');
-			throw new Exception\MissingPrimaryIndex('Primary index not available.');
-		}
-		return $primary['_source']['name'];
+		return $this->primaryIndexStrategy->getPrimaryIndex();
+
 	}
 
 	/**
@@ -92,19 +108,7 @@ class IndexRotator
 	 */
 	public function setPrimaryIndex($name)
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->createCurrentIndexConfiguration();
-		}
-		$this->engine->index([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => static::PRIMARY_ID,
-			'body' => [
-				'name' => $name,
-				'timestamp' => time()
-			]
-		]);
-		$this->logger->debug('Primary index set.', compact('name'));
+		$this->primaryIndexStrategy->setPrimaryIndex($name);
 	}
 
 	/**
@@ -116,9 +120,7 @@ class IndexRotator
 	 */
 	public function copyPrimaryIndexToSecondary($retryCount = 0)
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->createCurrentIndexConfiguration();
-		}
+		$this->configurationIndex->createCurrentIndexConfiguration();
 		try {
 			$primaryName = $this->getPrimaryIndex();
 		} catch (\Elasticsearch\Common\Exceptions\ServerErrorResponseException $e) {
