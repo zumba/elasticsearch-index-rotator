@@ -21,13 +21,6 @@ class IndexRotator
 	private $engine;
 
 	/**
-	 * Prefix identifier for this index.
-	 *
-	 * @var string
-	 */
-	private $prefix;
-
-	/**
 	 * Configuration index name for this index.
 	 *
 	 * @var \Zumba\ElasticsearchRotator\ConfigurationIndex
@@ -60,7 +53,6 @@ class IndexRotator
 	public function __construct(\Elasticsearch\Client $engine, $prefix, LoggerInterface $logger = null)
 	{
 		$this->engine = $engine;
-		$this->prefix = $prefix;
 		if ($logger !== null) {
 			$this->logger = $logger;
 		} else {
