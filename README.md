@@ -46,7 +46,7 @@ $client->search([
 <?php
 
 $client = new \Elasticsearch\Client();
-$indexRotator = new IndexRotator($client, 'pizza_shops');
+$indexRotator = new \Zumba\ElasticsearchRotator\IndexRotator($client, 'pizza_shops');
 // Build your index here
 $newlyBuiltIndexName = 'my_new_built_index_name';
 $indexRotator->copyPrimaryIndexToSecondary();
