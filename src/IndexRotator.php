@@ -5,16 +5,17 @@ namespace Zumba\ElasticsearchRotator;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Elasticsearch\Client;
+use Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy;
 
 class IndexRotator
 {
-	const INDEX_NAME_CONFIG = '.%s_configuration';
-	const TYPE_CONFIGURATION = 'configuration';
 	const SECONDARY_NAME_ONLY = 0;
 	const SECONDARY_INCLUDE_ID = 1;
-	const PRIMARY_ID = 'primary';
 	const RETRY_TIME_COPY = 500000;
 	const MAX_RETRY_COUNT = 5;
+	const STRATEGY_CONFIGURATION = 'Zumba\ElasticsearchRotator\Strategy\ConfigurationStrategy';
+	const STRATEGY_ALIAS = 'Zumba\ElasticsearchRotator\Strategy\AliasStrategy';
+	const DEFAULT_PRIMARY_INDEX_STRATEGY = self::STRATEGY_CONFIGURATION;
 
 	/**
 	 * Elasticsearch client instance.
@@ -24,18 +25,18 @@ class IndexRotator
 	private $engine;
 
 	/**
-	 * Prefix identifier for this index.
-	 *
-	 * @var string
-	 */
-	private $prefix;
-
-	/**
 	 * Configuration index name for this index.
 	 *
-	 * @var string
+	 * @var \Zumba\ElasticsearchRotator\ConfigurationIndex
 	 */
-	private $configurationIndexName;
+	private $configurationIndex;
+
+	/**
+	 * Strategy to employ when working on primary index.
+	 *
+	 * @var \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy
+	 */
+	private $primaryIndexStrategy;
 
 	/**
 	 * Mapping for configuration index.
@@ -62,13 +63,31 @@ class IndexRotator
 	public function __construct(\Elasticsearch\Client $engine, $prefix, LoggerInterface $logger = null)
 	{
 		$this->engine = $engine;
-		$this->prefix = $prefix;
-		if ($logger !== null) {
-			$this->logger = $logger;
-		} else {
-			$this->logger = new NullLogger();
-		}
-		$this->configurationIndexName = sprintf(static::INDEX_NAME_CONFIG, $this->prefix);
+		$this->logger = $logger ?: new NullLogger();
+		$this->configurationIndex = new ConfigurationIndex($this->engine, $this->logger, $prefix);
+		$this->setPrimaryIndexStrategy($this->strategyFactory(static::DEFAULT_PRIMARY_INDEX_STRATEGY, [
+			'configuration_index' => $this->configurationIndex
+		]));
+	}
+
+	/**
+	 * Instantiate a specific strategy.
+	 *
+	 * @param string $strategyClass Fully qualified class name for a strategy.
+	 * @param array $options Options specific to the strategy
+	 * @return \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy
+	 */
+	public function strategyFactory($strategyClass, array $options = []) {
+		return new $strategyClass($this->engine, $this->logger, $options);
+	}
+
+	/**
+	 * Set the primary index strategy.
+	 *
+	 * @param \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy $strategy
+	 */
+	public function setPrimaryIndexStrategy(PrimaryIndexStrategy $strategy) {
+		$this->primaryIndexStrategy = $strategy;
 	}
 
 	/**
@@ -79,23 +98,8 @@ class IndexRotator
 	 */
 	public function getPrimaryIndex()
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->logger->error('Primary index configuration index not available.');
-			throw new Exception\MissingPrimaryIndex('Primary index configuration index not available.');
-		}
-		$primaryPayload = [
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => static::PRIMARY_ID,
-			'preference' => '_primary'
-		];
-		try {
-			$primary = $this->engine->get($primaryPayload);
-		} catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
-			$this->logger->error('Primary index does not exist.');
-			throw new Exception\MissingPrimaryIndex('Primary index not available.');
-		}
-		return $primary['_source']['name'];
+		return $this->primaryIndexStrategy->getPrimaryIndex();
+
 	}
 
 	/**
@@ -106,19 +110,7 @@ class IndexRotator
 	 */
 	public function setPrimaryIndex($name)
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->createCurrentIndexConfiguration();
-		}
-		$this->engine->index([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => static::PRIMARY_ID,
-			'body' => [
-				'name' => $name,
-				'timestamp' => time()
-			]
-		]);
-		$this->logger->debug('Primary index set.', compact('name'));
+		$this->primaryIndexStrategy->setPrimaryIndex($name);
 	}
 
 	/**
@@ -130,9 +122,7 @@ class IndexRotator
 	 */
 	public function copyPrimaryIndexToSecondary($retryCount = 0)
 	{
-		if (!$this->engine->indices()->exists(['index' => $this->configurationIndexName])) {
-			$this->createCurrentIndexConfiguration();
-		}
+		$this->configurationIndex->createCurrentIndexConfiguration();
 		try {
 			$primaryName = $this->getPrimaryIndex();
 		} catch (\Elasticsearch\Common\Exceptions\ServerErrorResponseException $e) {
@@ -144,8 +134,8 @@ class IndexRotator
 			return $this->copyPrimaryIndexToSecondary($retryCount++);
 		}
 		$id = $this->engine->index([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
+			'index' => (string)$this->configurationIndex,
+			'type' => ConfigurationIndex::TYPE_CONFIGURATION,
 			'body' => [
 				'name' => $primaryName,
 				'timestamp' => time()
@@ -170,14 +160,14 @@ class IndexRotator
 			$olderThan = new \DateTime();
 		}
 		$params = [
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
+			'index' => (string)$this->configurationIndex,
+			'type' => ConfigurationIndex::TYPE_CONFIGURATION,
 			'body' => [
 				'query' => [
 					'bool' => [
 						'must_not' => [
 							'term' => [
-								'_id' => static::PRIMARY_ID
+								'_id' => ConfigurationIndex::PRIMARY_ID
 							]
 						],
 						'filter' => [
@@ -231,49 +221,18 @@ class IndexRotator
 			if ($this->engine->indices()->exists(['index' => $indexToDelete['index']])) {
 				$results[$indexToDelete['index']] = [
 					'index' => $this->engine->indices()->delete(['index' => $indexToDelete['index']]),
-					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+					'config' => $this->configurationIndex->deleteConfigurationEntry($indexToDelete['configuration_id'])
 				];
 				$this->logger->debug('Deleted secondary index.', compact('indexToDelete'));
 			} else {
 				$results[$indexToDelete] = [
 					'index' => null,
-					'config' => $this->deleteConfigurationEntry($indexToDelete['configuration_id'])
+					'config' => $this->configurationIndex->deleteConfigurationEntry($indexToDelete['configuration_id'])
 				];
 				$this->logger->debug('Index not found to delete.', compact('indexToDelete'));
 			}
 		}
 		return $results;
-	}
-
-	/**
-	 * Delete an entry from the configuration index.
-	 *
-	 * @param string $id
-	 * @return array
-	 */
-	private function deleteConfigurationEntry($id)
-	{
-		return $this->engine->delete([
-			'index' => $this->configurationIndexName,
-			'type' => static::TYPE_CONFIGURATION,
-			'id' => $id
-		]);
-	}
-
-	/**
-	 * Create the index needed to store the primary index name.
-	 *
-	 * @return void
-	 */
-	private function createCurrentIndexConfiguration()
-	{
-		$this->engine->indices()->create([
-			'index' => $this->configurationIndexName,
-			'body' => static::$elasticSearchConfigurationMapping
-		]);
-		$this->logger->debug('Configuration index created.', [
-			'index' => $this->configurationIndexName
-		]);
 	}
 
 	/**

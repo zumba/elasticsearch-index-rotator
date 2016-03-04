@@ -46,7 +46,7 @@ $client->search([
 <?php
 
 $client = new \Elasticsearch\Client();
-$indexRotator = new IndexRotator($client, 'pizza_shops');
+$indexRotator = new \Zumba\ElasticsearchRotator\IndexRotator($client, 'pizza_shops');
 // Build your index here
 $newlyBuiltIndexName = 'my_new_built_index_name';
 $indexRotator->copyPrimaryIndexToSecondary();
@@ -97,3 +97,36 @@ class MySearchIndex {
 
 }
 ```
+
+## Using Strategies
+
+You can now customize the strategy of getting/setting the primary index. By default, the `ConfigurationStrategy` is employed,
+however we have also included an `AliasStrategy`. The main difference is when `setPrimaryIndex` is called, instead of creating an entry
+in the configuration index, it adds an alias (specified by `alias_name` option) on the specified index and deletes all other aliases
+for the old primary indices (specified by `index_pattern`).
+
+#### Using the `AliasStrategy`
+
+```php
+<?php
+
+$client = new \Elasticsearch\Client();
+$indexRotator = new \Zumba\ElasticsearchRotator\IndexRotator($client, 'pizza_shops');
+$aliasStrategy = $indexRotator->strategyFactory(IndexRotator::STRATEGY_ALIAS, [
+	'alias_name' => 'pizza_shops',
+	'index_pattern' => 'pizza_shops_*'
+]);
+// Build your index here
+$newlyBuiltIndexName = 'pizza_shops_1234102874';
+$indexRotator->copyPrimaryIndexToSecondary();
+$indexRotator->setPrimaryIndex($newlyBuiltIndexName);
+
+// Now that the alias is set, you can search on that alias instead of having to call `getPrimaryIndex`.
+$client->search([
+	'index' => 'pizza_shops',
+	'type' => 'shop',
+	'body' => [] //...
+])
+```
+
+Since the alias (`pizza_shops`) is mapped to the primary index (`pizza_shops_1234102874`), you can use the alias directly in your client application rather than having to call `getPrimaryIndex()` on the `IndexRotator`. That being said, calling `getPrimaryIndex` won't return the alias, but rather the index that it is aliasing. The secondary entries in the configuration index are still used and reference the actual index names, since the alias can be updated at any time and there wouldn't be a reference to remove the old one.
