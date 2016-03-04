@@ -12,6 +12,22 @@ class ConfigurationIndex
 	const PRIMARY_ID = 'primary';
 
 	/**
+	 * Mapping for configuration index.
+	 *
+	 * @var array
+	 */
+	public static $elasticSearchConfigurationMapping = [
+		'mappings' => [
+			'configuration' => [
+				'properties' => [
+					'name' => ['type' => 'string', 'index' => 'not_analyzed'],
+					'timestamp' => ['type' => 'date']
+				]
+			]
+		]
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param \Elasticsearch\Client $engine [description]
