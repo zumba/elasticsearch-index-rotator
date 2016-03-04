@@ -57,6 +57,7 @@ class AliasStrategy implements PrimaryIndexStrategy
 	 */
 	public function setPrimaryIndex($name)
 	{
+		$this->logger->debug(sprintf('Setting primary index to %s.', $name));
 		$params = [
 			'body' => [
 				'actions' => [
@@ -73,9 +74,15 @@ class AliasStrategy implements PrimaryIndexStrategy
 						]
 					]
 				]
-			],
-			'client' => ['ignore' => 404]
+			]
 		];
-		$this->engine->indices()->updateAliases($params);
+		try {
+			$this->engine->indices()->updateAliases($params);
+		} catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
+			$this->logger->debug('No aliases matched the pattern. Retrying without the removal of old indices.');
+			array_shift($params['body']['actions']);
+			$this->engine->indices()->updateAliases($params);
+		}
+
 	}
 }
