@@ -77,7 +77,8 @@ class IndexRotator
 	 * @param array $options Options specific to the strategy
 	 * @return \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy
 	 */
-	public function strategyFactory($strategyClass, array $options = []) {
+	public function strategyFactory($strategyClass, array $options = [])
+	{
 		return new $strategyClass($this->engine, $this->logger, $options);
 	}
 
@@ -86,7 +87,8 @@ class IndexRotator
 	 *
 	 * @param \Zumba\ElasticsearchRotator\Common\PrimaryIndexStrategy $strategy
 	 */
-	public function setPrimaryIndexStrategy(PrimaryIndexStrategy $strategy) {
+	public function setPrimaryIndexStrategy(PrimaryIndexStrategy $strategy)
+	{
 		$this->primaryIndexStrategy = $strategy;
 	}
 
@@ -99,7 +101,6 @@ class IndexRotator
 	public function getPrimaryIndex()
 	{
 		return $this->primaryIndexStrategy->getPrimaryIndex();
-
 	}
 
 	/**
