@@ -1,6 +1,7 @@
 <?php
 
 use \Zumba\ElasticsearchRotator\IndexRotator;
+use \Zumba\ElasticsearchRotator\ConfigurationIndex;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\Client\Connector;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\DataSet\DataSet;
 
@@ -53,7 +54,7 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 			'some_index_3' => [],
 		]);
 		$dataSet->setMappings([
-			'.config_test_configuration' => IndexRotator::$elasticSearchConfigurationMapping['mappings']
+			'.config_test_configuration' => ConfigurationIndex::$elasticSearchConfigurationMapping['mappings']
 		]);
 		return $dataSet;
 	}
