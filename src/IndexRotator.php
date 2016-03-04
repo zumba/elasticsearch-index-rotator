@@ -13,7 +13,9 @@ class IndexRotator
 	const SECONDARY_INCLUDE_ID = 1;
 	const RETRY_TIME_COPY = 500000;
 	const MAX_RETRY_COUNT = 5;
-	const DEFAULT_PRIMARY_INDEX_STRATEGY = 'Zumba\ElasticsearchRotator\Strategy\ConfigurationStrategy';
+	const STRATEGY_CONFIGURATION = 'Zumba\ElasticsearchRotator\Strategy\ConfigurationStrategy';
+	const STRATEGY_ALIAS = 'Zumba\ElasticsearchRotator\Strategy\AliasStrategy';
+	const DEFAULT_PRIMARY_INDEX_STRATEGY = self::STRATEGY_CONFIGURATION;
 
 	/**
 	 * Elasticsearch client instance.
