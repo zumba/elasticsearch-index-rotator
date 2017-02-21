@@ -24,6 +24,9 @@ In many cases, rebuilding an index requires a clean slate so that the entire ind
 composer require zumba/elasticsearch-index-rotate
 ```
 
+Elasticsearch Index Rotator supports multiple versions of ElasticSearch server and uses the [official elasticsearch](https://packagist.org/packages/elasticsearch/elasticsearch) library for execute the commands.
+On your application, make sure you include this package as well and specify the version supported by your Elasticsearch server. See the library documentation for the versions.
+
 ## Usage
 
 #### Example Search
