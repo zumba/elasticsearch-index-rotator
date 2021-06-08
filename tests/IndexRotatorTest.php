@@ -5,11 +5,11 @@ use \Zumba\ElasticsearchRotator\ConfigurationIndex;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\Client\Connector;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\DataSet\DataSet;
 
-class IndexRotatorTest extends \PHPUnit_Framework_TestCase
+class IndexRotatorTest extends \PHPUnit\Framework\TestCase
 {
 	use \Zumba\PHPUnit\Extensions\ElasticSearch\TestTrait;
 
-	public function setUp() {
+	public function setUp() : void {
 		$this->indexRotator = new IndexRotator($this->getElasticSearchConnector()->getConnection(), 'config_test');
 		parent::setUp();
 	}
@@ -64,13 +64,12 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('some_index_1', $this->indexRotator->getPrimaryIndex());
 	}
 
-	/**
-	 * @expectedException Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex
-	 */
 	public function testFailingToRetreivePrimaryIndex() {
 		// Remove the fixtured primary index.
+		$this->expectException(\Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex::class);
 		$this->elasticSearchTearDown();
 		$this->indexRotator->getPrimaryIndex();
+		
 	}
 
 	public function testSetPrimaryIndex()
@@ -119,7 +118,7 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 		$this->assertEmpty(array_diff(array_keys($results), $expectedToDelete));
 		foreach ($results as $result) {
 			$this->assertEquals(['acknowledged' => true], $result['index']);
-			$this->assertTrue($result['config']['found']);
+			$this->assertTrue($result['config']['result'] == 'deleted');
 		}
 	}
 

@@ -14,9 +14,9 @@ jobs:
     
     strategy:
       matrix:
-        php-version: [7]
+        php-version: [7.2, 8]
         os: [ubuntu-latest]
-        es-version: [5.3.2]
+        es-version: [6.8]
 
     runs-on: ${{ matrix.os }}
 

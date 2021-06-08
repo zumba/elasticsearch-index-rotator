@@ -4,11 +4,11 @@ use \Zumba\ElasticsearchRotator\Strategy\AliasStrategy;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\Client\Connector;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\DataSet\DataSet;
 
-class AliasStrategyTest extends \PHPUnit_Framework_TestCase
+class AliasStrategyTest extends \PHPUnit\Framework\TestCase
 {
 	use \Zumba\PHPUnit\Extensions\ElasticSearch\TestTrait;
 
-	public function setUp() {
+	public function setUp() : void {
 		$this->aliasStrategy = new AliasStrategy($this->getElasticSearchConnector()->getConnection(), null, [
 			'alias_name' => 'some_alias',
 			'index_pattern' => 'some_index_*'
@@ -53,10 +53,8 @@ class AliasStrategyTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('some_index_1', $this->aliasStrategy->getPrimaryIndex());
 	}
 
-	/**
-	 * @expectedException Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex
-	 */
 	public function testFailingToRetreivePrimaryIndex() {
+		$this->expectException(\Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex::class);
 		$this->aliasStrategy->getPrimaryIndex();
 	}
 
