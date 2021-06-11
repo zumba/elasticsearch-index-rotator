@@ -12,12 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Setup Php
-      uses: nanasess/setup-php@master
+    - name: Setup PHP with tools
+      uses: shivammathur/setup-php@v2
       with:
         php-version: '7.2'
-
-    - uses: php-actions/composer@v6
+        tools: composer
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict -v
@@ -27,7 +26,6 @@ jobs:
       # uses: getong/elasticsearch-action@95b501ab0c83dee0aac7c39b7cea3723bef14954
       uses: getong/elasticsearch-action@v1.2
       with:
-        # Version of elasticsearch to use
         elasticsearch version: 6.8.0
 
     - name: Cache Composer packages
