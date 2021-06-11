@@ -17,6 +17,8 @@ jobs:
       with:
         php-version: '7.2'
 
+    - uses: php-actions/composer@v6
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict -v
       
