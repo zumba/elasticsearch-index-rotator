@@ -17,9 +17,6 @@ jobs:
       with:
         php-version: '7.2'
         tools: composer
-
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict -v
       
     - name: Setup ElasticSearch
       # You may pin to the exact commit or the version.
