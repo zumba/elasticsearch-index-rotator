@@ -1,5 +1,4 @@
 name: PHP Composer
-php-version: '7.2'
 
 on:
   push:
@@ -13,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Setup Php
+      uses: nanasess/setup-php@master
+      with:
+        php-version: '7.2'
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
