@@ -1,0 +1,44 @@
+name: PHP Composer
+php-version: '7.2'
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+      
+    - name: Setup ElasticSearch
+      # You may pin to the exact commit or the version.
+      # uses: getong/elasticsearch-action@95b501ab0c83dee0aac7c39b7cea3723bef14954
+      uses: getong/elasticsearch-action@v1.2
+      with:
+        # Version of elasticsearch to use
+        elasticsearch version: 6.8.0
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+      env:
+        COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run test suite
+      run: ./vendor/bin/phpunit --coverage-text
