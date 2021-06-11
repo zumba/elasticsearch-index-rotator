@@ -23,7 +23,7 @@ jobs:
       # uses: getong/elasticsearch-action@95b501ab0c83dee0aac7c39b7cea3723bef14954
       uses: getong/elasticsearch-action@v1.2
       with:
-        elasticsearch version: 6.8.0
+        elasticsearch version: '6.8.0'
 
     - name: Cache Composer packages
       id: composer-cache
