@@ -10,7 +10,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=5.5.0",
+        "php": ">=7.0",
         "elasticsearch/elasticsearch": ">=1.0 <6.0",
         "psr/log": "^1.0"
     },
@@ -23,7 +23,7 @@
         "monolog/monolog": "Allows more advanced logging of the application flow"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.0",
-        "zumba/elasticsearchunit": "~2.0.0"
+        "phpunit/phpunit": "4.8.23",
+        "zumba/elasticsearchunit": "^1.3"
     }
 }
