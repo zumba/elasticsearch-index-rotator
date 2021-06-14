@@ -50,7 +50,7 @@ jobs:
     - name: Runs Elasticsearch ${{ matrix.es-version }}
       uses: getong/elasticsearch-action@v1.2
       with:
-        elasticsearch version: '${{ es-version }}'
+        elasticsearch version: '${{ matrix.es-version }}'
         host port: 9200
         container port: 9200
         host node port: 9300
