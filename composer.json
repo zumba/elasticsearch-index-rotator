@@ -12,7 +12,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url":  "git@github.com:elasticsearch/elasticsearch.git"
+            "url":  "git@github.com:elasticsearch/elasticsearch-php.git"
         }
     ],
     "require": {
