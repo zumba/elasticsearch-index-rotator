@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=7.2",
-        "elasticsearch/elasticsearch": "dev-master#14050c316ee80b3c6604ddc4b854d53ea3f324ce",
+        "elasticsearch/elasticsearch": "dev-master#e0df11da101135310f91688f17d71fa4b00a2508",
         "psr/log": "^1.0"
     },
     "autoload": {
