@@ -9,9 +9,15 @@
         }
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url":  "git@github.com:kylerberry/elasticsearch-php.git"
+        }
+    ],
     "require": {
         "php": ">=7.0",
-        "elasticsearch/elasticsearch": "^5.0",
+        "elasticsearch/elasticsearch": "dev-support-php8",
         "psr/log": "^1.0"
     },
     "autoload": {
