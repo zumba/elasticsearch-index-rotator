@@ -12,6 +12,21 @@ class ConfigurationIndex
 	const PRIMARY_ID = 'primary';
 
 	/**
+	 * @var \Elasticsearch\Client
+	 */
+	private $engine;
+
+	/**
+	 * @var \Psr\Log\LoggerInterface
+	 */
+	private $logger;
+
+	/**
+	 * @var string
+	 */
+	private $configurationIndexName;
+
+	/**
 	 * Mapping for configuration index.
 	 *
 	 * @var array

@@ -10,6 +10,22 @@ use Psr\Log\NullLogger;
 
 class AliasStrategy implements PrimaryIndexStrategy
 {
+
+	/**
+	 * @var \Elasticsearch\Client
+	 */
+	private $engine;
+
+	/**
+	 * @var \Psr\Log\LoggerInterface
+	 */
+	private $logger;
+
+	/**
+	 * @var array
+	 */
+	private $options;
+
 	/**
 	 * Constructor.
 	 *
