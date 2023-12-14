@@ -39,13 +39,18 @@ class IndexRotator
 	private $primaryIndexStrategy;
 
 	/**
+	 * @var \Psr\Log\LoggerInterface
+	 */
+	private $logger;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param \Elasticsearch\Client $engine
 	 * @param string $prefix Identifier for who's configuration this is intended.
 	 * @param Psr\Log\LoggerInterface $logger
 	 */
-	public function __construct(\Elasticsearch\Client $engine, $prefix, LoggerInterface $logger = null)
+	public function __construct(Client $engine, $prefix, LoggerInterface $logger = null)
 	{
 		$this->engine = $engine;
 		$this->logger = $logger ?: new NullLogger();
