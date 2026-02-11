@@ -35,7 +35,7 @@ class ConfigurationIndex
 		'mappings' => [
 			'configuration' => [
 				'properties' => [
-					'name' => ['type' => 'string', 'index' => 'not_analyzed'],
+					'name' => ['type' => 'keyword'],
 					'timestamp' => ['type' => 'date']
 				]
 			]
