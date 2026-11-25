@@ -121,7 +121,7 @@ class IndexRotatorTest extends \PHPUnit\Framework\TestCase
 		$this->assertEmpty(array_diff(array_keys($results), $expectedToDelete));
 		foreach ($results as $result) {
 			$this->assertEquals(['acknowledged' => true], $result['index']);
-			$this->assertTrue($result['config']['found']);
+			$this->assertSame('deleted', $result['config']['result']);
 		}
 	}
 
