@@ -50,7 +50,7 @@ class IndexRotator
 	 * @param string $prefix Identifier for who's configuration this is intended.
 	 * @param Psr\Log\LoggerInterface $logger
 	 */
-	public function __construct(Client $engine, $prefix, LoggerInterface $logger = null)
+	public function __construct(Client $engine, $prefix, ?LoggerInterface $logger = null)
 	{
 		$this->engine = $engine;
 		$this->logger = $logger ?: new NullLogger();
@@ -145,7 +145,7 @@ class IndexRotator
 	 * @param integer $disposition Controls the return style (defaults to name only)
 	 * @return array
 	 */
-	public function getSecondaryIndices(\DateTime $olderThan = null, $disposition = self::SECONDARY_NAME_ONLY)
+	public function getSecondaryIndices(?\DateTime $olderThan = null, $disposition = self::SECONDARY_NAME_ONLY)
 	{
 		if ($olderThan === null) {
 			$olderThan = new \DateTime();
@@ -205,7 +205,7 @@ class IndexRotator
 	 * @param \DateTime $olderThan
 	 * @return array Results of the bulk operation.
 	 */
-	public function deleteSecondaryIndices(\DateTime $olderThan = null)
+	public function deleteSecondaryIndices(?\DateTime $olderThan = null)
 	{
 		$results = [];
 		foreach ($this->getSecondaryIndices($olderThan, static::SECONDARY_INCLUDE_ID) as $indexToDelete) {

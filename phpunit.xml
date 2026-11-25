@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit backupGlobals="false"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+		 backupGlobals="false"
 		 backupStaticAttributes="false"
 		 bootstrap="vendor/autoload.php"
 		 convertErrorsToExceptions="true"
@@ -7,16 +9,15 @@
 		 convertWarningsToExceptions="true"
 		 processIsolation="false"
 		 stopOnFailure="false"
-		 syntaxCheck="true"
 		 colors="true">
+	<coverage includeUncoveredFiles="true">
+		<include>
+			<directory>./src</directory>
+		</include>
+	</coverage>
 	<testsuites>
 		<testsuite name="Core Test Suite">
 			<directory suffix="Test.php">./tests</directory>
 		</testsuite>
 	</testsuites>
-	<filter>
-		<whitelist addUncoveredFilesFromWhitelist="true">
-			<directory>./src</directory>
-		</whitelist>
-	</filter>
 </phpunit>

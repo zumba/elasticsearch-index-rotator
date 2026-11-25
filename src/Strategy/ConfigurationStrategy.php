@@ -35,7 +35,7 @@ class ConfigurationStrategy implements PrimaryIndexStrategy
 	 * @param array $options
 	 * @throws \DomainException
 	 */
-	public function __construct(Client $engine, LoggerInterface $logger = null, array $options = [])
+	public function __construct(Client $engine, ?LoggerInterface $logger = null, array $options = [])
 	{
 		if (!empty($options['configuration_index']) && !$options['configuration_index'] instanceof ConfigurationIndex) {
 			throw new \DomainException('Configuration index must be provided.');
