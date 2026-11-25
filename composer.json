@@ -12,7 +12,11 @@
     "repositories": [
         {
             "type": "vcs",
-            "url":  "git@github.com:kylerberry/elasticsearch-php.git"
+            "url":  "https://github.com/zumba/elasticsearch-php.git"
+        },
+        {
+            "type": "vcs",
+            "url":  "https://github.com/zumba/ringphp.git"
         }
     ],
     "require": {
@@ -31,5 +35,7 @@
     "require-dev": {
         "phpunit/phpunit": "4.8.23",
         "zumba/elasticsearchunit": "^1.3"
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
