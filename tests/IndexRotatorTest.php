@@ -2,14 +2,18 @@
 
 use \Zumba\ElasticsearchRotator\IndexRotator;
 use \Zumba\ElasticsearchRotator\ConfigurationIndex;
+use \Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\Client\Connector;
 use \Zumba\PHPUnit\Extensions\ElasticSearch\DataSet\DataSet;
 
-class IndexRotatorTest extends \PHPUnit_Framework_TestCase
+class IndexRotatorTest extends \PHPUnit\Framework\TestCase
 {
 	use \Zumba\PHPUnit\Extensions\ElasticSearch\TestTrait;
 
-	public function setUp() {
+	private $indexRotator;
+	private $connection;
+
+	public function setUp(): void {
 		$this->indexRotator = new IndexRotator($this->getElasticSearchConnector()->getConnection(), 'config_test');
 		parent::setUp();
 	}
@@ -64,10 +68,8 @@ class IndexRotatorTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('some_index_1', $this->indexRotator->getPrimaryIndex());
 	}
 
-	/**
-	 * @expectedException Zumba\ElasticsearchRotator\Exception\MissingPrimaryIndex
-	 */
 	public function testFailingToRetreivePrimaryIndex() {
+		$this->expectException(MissingPrimaryIndex::class);
 		// Remove the fixtured primary index.
 		$this->elasticSearchTearDown();
 		$this->indexRotator->getPrimaryIndex();

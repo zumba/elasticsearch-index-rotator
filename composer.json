@@ -33,7 +33,7 @@
         "monolog/monolog": "Allows more advanced logging of the application flow"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.8.23",
+        "phpunit/phpunit": "^9.6",
         "zumba/elasticsearchunit": "^1.3"
     },
     "minimum-stability": "dev",
