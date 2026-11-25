@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": ">=7.0",
+        "php": "^8.0",
         "elasticsearch/elasticsearch": "dev-support-php8",
         "psr/log": "^1.0"
     },

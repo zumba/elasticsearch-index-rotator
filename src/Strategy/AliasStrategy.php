@@ -34,7 +34,7 @@ class AliasStrategy implements PrimaryIndexStrategy
 	 * @param array $options
 	 * @throws \DomainException
 	 */
-	public function __construct(Client $engine, LoggerInterface $logger = null, array $options = [])
+	public function __construct(Client $engine, ?LoggerInterface $logger = null, array $options = [])
 	{
 		$this->engine = $engine;
 		$this->logger = $logger ?: new NullLogger();
